@@ -146,17 +146,15 @@
   </div>
 
   <script>
-    // base64 + UTF-8 JSON 복호화
     function decodeData() {
       const raw = new URLSearchParams(location.search).get("data");
       if (!raw) return null;
 
       try {
-        const binary = atob(raw);
-        const decoded = decodeURIComponent(binary);
-        return JSON.parse(decoded);
+        const json = decodeURIComponent(raw);
+        return JSON.parse(json);
       } catch (e) {
-        console.error("디코딩 오류:", e);
+        console.error("JSON 디코딩 오류:", e);
         return null;
       }
     }
