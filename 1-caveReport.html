@@ -256,7 +256,7 @@
         const element = document.getElementById('report');
         html2pdf().set({
           margin: 0.5,
-          filename: '동굴미션_리포트.pdf',
+          filename: `동굴미션_리포트(${name}).pdf`,
           html2canvas: { scale: 2 },
           jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
         }).from(element).save();
