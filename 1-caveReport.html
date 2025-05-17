@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8">
+  <title>동굴미션 리포트</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://raw.githack.com/eKoopmans/html2pdf/master/dist/html2pdf.bundle.js"></script>
+  <style>
+    body {
+      padding: 10px;
+      /* 상하좌우 여백 줄이기 */
+      background: #fffaf2;
+      font-family: 'Pretendard', 'Noto Sans KR', sans-serif;
+      color: #333;
+    }
+
+    .report-container {
+      max-width: 780px;
+      padding: 24px 32px;
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+      margin: auto;
+    }
+
+    .report-header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .report-header h1 {
+      font-size: 28px;
+      color: #2c7c8c;
+      margin-bottom: 16px;
+    }
+
+    .report-meta {
+      display: flex;
+      justify-content: center;
+      gap: 32px;
+      flex-wrap: wrap;
+      font-size: 20px;
+      color: #444;
+    }
+
+    .summary-box {
+      background: #f0f9f9;
+      padding: 20px;
+      border-radius: 10px;
+      margin-bottom: 30px;
+    }
+
+    .summary-box p {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+    }
+
+    .section-title {
+      font-size: 20px;
+      font-weight: bold;
+      margin-top: 30px;
+      color: #397d84;
+      border-bottom: 2px solid #c4e4e4;
+      padding-bottom: 5px;
+    }
+
+    .footer {
+      text-align: center;
+      margin-top: 40px;
+      font-style: italic;
+      color: #666;
+    }
+
+    .stars {
+      color: #f7c94c;
+      font-weight: bold;
+      margin-top: 2px;
+    }
+
+    .pdf-button {
+      display: block;
+      margin: 30px auto 10px;
+      background: #2c7c8c;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .pdf-button.close {
+      background: #ccc;
+      color: #333;
+    }
+
+    .pdf-button.close:hover {
+      background: #bbb;
+    }
+
+    .pdf-button:hover {
+      background: #216972;
+    }
+
+    .chart-container {
+      position: relative;
+    }
+
+    .chart-overlay {
+      position: absolute;
+      pointer-events: none;
+    }
+
+    .icon-label {
+      position: absolute;
+      font-size: 14px;
+      text-align: center;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      white-space: nowrap;
+    }
+
+    .chest-topic-list {
+      margin-top: 20px;
+      padding-left: 20px;
+      font-size: 15px;
+      line-height: 1.6;
+      color: #444;
+    }
+
+    .chest-topic-list li::before {
+      content: '📦 ';
+    }
+
+    .button-group {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="button-group">
+    <button class="pdf-button" onclick="downloadPDF()">📄 PDF 저장하기</button>
+    <button class="pdf-button close" onclick="closeReport()">닫기</button>
+  </div>
+
+  <div id="report" class="report-container">
+    <div class="report-header">
+      <h1>제1장 동굴미션 학습 보고서</h1>
+      <div class="report-meta">
+        <div><strong>이름:</strong> 티오</div>
+        <div><strong>총 별 개수:</strong> <span class="stars">⭐ x 49</span></div>
+        <div><strong>날짜:</strong> 2025-05-17</div>
+      </div>
+    </div>
+
+    <div class="summary-box">
+      <p>📦 <strong>총 미션 수:</strong> 5개 보물상자</p>
+      <p>📝 <strong>총 문제 수:</strong> 30문제</p>
+      <p>✅ <strong>정답 수:</strong> 25개</p>
+      <p>📊 <strong>평균 정확도:</strong> 83.3%</p>
+      <p>💬 <strong>한줄 피드백:</strong> 직각과 각도 개념을 잘 익혔어요! 정교함이 조금 더 좋아질 수 있어요!</p>
+    </div>
+
+    <div class="section-title">보물상자별 정확도 + 별 개수</div>
+    <div class="chart-container">
+      <canvas id="accuracyChart" width="700" height="300"></canvas>
+      <div id="chartOverlay" class="chart-overlay"></div>
+    </div>
+
+    <div class="section-title">보물상자별 학습 주제</div>
+    <ul class="chest-topic-list">
+      <li><strong>1번 보물상자:</strong> 각 그리기</li>
+      <li><strong>2번 보물상자:</strong> 직각삼각형에서 직각 찾기</li>
+      <li><strong>3번 보물상자:</strong> 직각삼각형 그리기</li>
+      <li><strong>4번 보물상자:</strong> 직각사각형에서 직각 찾기</li>
+      <li><strong>5번 보물상자:</strong> 직각사각형 그리기</li>
+    </ul>
+
+    <div class="footer">
+      "넌 이제 숲속 마을로 갈 준비가 되었다."
+    </div>
+  </div>
+
+  <script>
+    function closeReport() {
+
+    }
+
+    function downloadPDF() {
+      const element = document.getElementById('report');
+      const opt = {
+        margin: 0.5,
+        filename: '동굴미션_리포트.pdf',
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+      };
+      html2pdf().set(opt).from(element).save();
+    }
+
+    const labels = ['1번 보물상자', '2번 보물상자', '3번 보물상자', '4번 보물상자', '5번 보물상자'];
+    const accuracyData = [80, 100, 75, 85, 90];
+    const starCounts = [9, 10, 7, 8, 9];
+
+    const ctx = document.getElementById('accuracyChart').getContext('2d');
+    const chartOverlay = document.getElementById('chartOverlay');
+
+    const chart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: '정확도 (%)',
+          data: accuracyData,
+          backgroundColor: '#2c7c8c'
+        }]
+      },
+      options: {
+        responsive: false,
+        animation: {
+          onComplete: () => {
+            chartOverlay.innerHTML = '';
+            chart.data.datasets[0].data.forEach((value, index) => {
+              const meta = chart.getDatasetMeta(0).data[index];
+              const x = meta.x;
+              const y = chart.scales.y.top - 5;
+
+              const div = document.createElement('div');
+              div.className = 'icon-label';
+              div.style.left = `${x}px`;
+              div.style.top = `${y}px`;
+              div.textContent = `⭐ x ${starCounts[index]}`;
+              chartOverlay.appendChild(div);
+            });
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            max: 100
+          }
+        },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: (context) => {
+                const topics = [
+                  '각 그리기',
+                  '직각삼각형에서 직각 찾기',
+                  '직각삼각형 그리기',
+                  '직각사각형에서 직각 찾기',
+                  '직각사각형 그리기'
+                ];
+                return `${context.parsed.y}% - ${topics[context.dataIndex]}`;
+              }
+            }
+          }
+        }
+      }
+    });
+  </script>
+
+</body>
+
+</html>
