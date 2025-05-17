@@ -2,14 +2,13 @@
 <html lang="ko">
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>동굴미션 리포트</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://raw.githack.com/eKoopmans/html2pdf/master/dist/html2pdf.bundle.js"></script>
   <style>
     body {
       padding: 10px;
-      /* 상하좌우 여백 줄이기 */
       background: #fffaf2;
       font-family: 'Pretendard', 'Noto Sans KR', sans-serif;
       color: #333;
@@ -40,7 +39,7 @@
       justify-content: center;
       gap: 32px;
       flex-wrap: wrap;
-      font-size: 20px;
+      font-size: 18px;
       color: #444;
     }
 
@@ -79,31 +78,6 @@
       margin-top: 2px;
     }
 
-    .pdf-button {
-      display: block;
-      margin: 30px auto 10px;
-      background: #2c7c8c;
-      color: white;
-      padding: 10px 20px;
-      border: none;
-      border-radius: 8px;
-      font-size: 16px;
-      cursor: pointer;
-    }
-
-    .pdf-button.close {
-      background: #ccc;
-      color: #333;
-    }
-
-    .pdf-button.close:hover {
-      background: #bbb;
-    }
-
-    .pdf-button:hover {
-      background: #216972;
-    }
-
     .chart-container {
       position: relative;
     }
@@ -133,37 +107,21 @@
     .chest-topic-list li::before {
       content: '📦 ';
     }
-
-    .button-group {
-      display: flex;
-      justify-content: right;
-      gap: 16px;
-      margin-bottom: 20px;
-    }
   </style>
 </head>
 
 <body>
-  <div class="button-group">
-    <button class="pdf-button" onclick="downloadPDF()">📄 PDF 저장하기</button>
-  </div>
 
   <div id="report" class="report-container">
     <div class="report-header">
       <h1>제1장 동굴미션 학습 보고서</h1>
-      <div class="report-meta">
-        <div><strong>이름:</strong> 티오</div>
-        <div><strong>총 별 개수:</strong> <span class="stars">⭐ x 49</span></div>
-        <div><strong>날짜:</strong> 2025-05-17</div>
+      <div class="report-meta" id="metaArea">
+        <!-- 자동 삽입 -->
       </div>
     </div>
 
-    <div class="summary-box">
-      <p>📦 <strong>총 미션 수:</strong> 5개 보물상자</p>
-      <p>📝 <strong>총 문제 수:</strong> 30문제</p>
-      <p>✅ <strong>정답 수:</strong> 25개</p>
-      <p>📊 <strong>평균 정확도:</strong> 83.3%</p>
-      <p>💬 <strong>한줄 피드백:</strong> 직각과 각도 개념을 잘 익혔어요! 정교함이 조금 더 좋아질 수 있어요!</p>
+    <div class="summary-box" id="summaryBox">
+      <!-- 자동 삽입 -->
     </div>
 
     <div class="section-title">보물상자별 정확도 + 별 개수</div>
@@ -174,11 +132,12 @@
 
     <div class="section-title">보물상자별 학습 주제</div>
     <ul class="chest-topic-list">
-      <li><strong>1번 보물상자:</strong> 각 그리기</li>
-      <li><strong>2번 보물상자:</strong> 직각삼각형에서 직각 찾기</li>
-      <li><strong>3번 보물상자:</strong> 직각삼각형 그리기</li>
-      <li><strong>4번 보물상자:</strong> 직각사각형에서 직각 찾기</li>
-      <li><strong>5번 보물상자:</strong> 직각사각형 그리기</li>
+      <li><strong>1번 보물상자:</strong> 각 알아보기</li>
+      <li><strong>2번 보물상자:</strong> 각 그리기</li>
+      <li><strong>3번 보물상자:</strong> 직각삼각형에서 직각 찾기</li>
+      <li><strong>4번 보물상자:</strong> 직각삼각형 그리기</li>
+      <li><strong>5번 보물상자:</strong> 직각사각형에서 직각 찾기</li>
+      <li><strong>6번 보물상자:</strong> 직각사각형 그리기</li>
     </ul>
 
     <div class="footer">
@@ -187,25 +146,59 @@
   </div>
 
   <script>
-    function closeReport() {
+    // base64 + UTF-8 JSON 복호화
+    function decodeData() {
+      const raw = new URLSearchParams(location.search).get("data");
+      if (!raw) return null;
 
+      try {
+        const binary = atob(raw);
+        const bytes = new Uint8Array([...binary].map(ch => ch.charCodeAt(0)));
+        const json = new TextDecoder().decode(bytes);
+        return JSON.parse(json);
+      } catch (e) {
+        console.error("데이터 디코딩 실패:", e);
+        return null;
+      }
     }
 
-    function downloadPDF() {
-      const element = document.getElementById('report');
-      const opt = {
-        margin: 0.5,
-        filename: '동굴미션_리포트.pdf',
-        html2canvas: { scale: 2 },
-        jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
-      };
-      html2pdf().set(opt).from(element).save();
+    const report = decodeData();
+    if (!report) {
+      document.getElementById("report").innerHTML = `<p>❗ 데이터를 불러올 수 없습니다.</p>`;
+      throw new Error("Invalid report data");
     }
 
-    const labels = ['1번 보물상자', '2번 보물상자', '3번 보물상자', '4번 보물상자', '5번 보물상자'];
-    const accuracyData = [80, 100, 75, 85, 90];
-    const starCounts = [9, 10, 7, 8, 9];
+    const name = report.name || '이름없음';
+    const corrects = report.corrects || [0, 0, 0, 0, , 0];
+    const wrongs = report.wrongs || [0, 0, 0, 0, 0, 0];
+    const stars = corrects.reduce((sum, c) => sum + c, 0);
+    const total = corrects.map((c, i) => c + wrongs[i]);
+    const totalCorrect = corrects.reduce((sum, v) => sum + v, 0);
+    const totalQuestions = total.reduce((a, b) => a + b, 0);
+    const accuracy = totalQuestions ? (totalCorrect / totalQuestions) * 100 : 0;
 
+    // 메타 영역
+    document.getElementById('metaArea').innerHTML = `
+    <div><strong>이름:</strong> ${name}</div>
+    <div><strong>총 별 개수:</strong> <span class="stars">⭐ x ${stars}</span></div>
+    <div><strong>날짜:</strong> ${new Date().toLocaleDateString()}</div>
+  `;
+
+    // 요약 박스
+    document.getElementById('summaryBox').innerHTML = `
+    <p>📦 <strong>총 미션 수:</strong> ${corrects.length}개 보물상자</p>
+    <p>📝 <strong>총 문제 수:</strong> ${totalQuestions}문제</p>
+    <p>✅ <strong>정답 수:</strong> ${totalCorrect}개</p>
+    <p>📊 <strong>평균 정확도:</strong> ${accuracy.toFixed(1)}%</p>
+    <p>💬 <strong>한줄 피드백:</strong> 직각과 각도 개념을 잘 익혔어요! 정교함이 조금 더 좋아질 수 있어요!</p>
+  `;
+
+    // 차트 그리기
+    const labels = corrects.map((_, i) => `${i + 1}번 보물상자`);
+    const accuracyData = corrects.map((c, i) => {
+      const total = c + (wrongs[i] || 0);
+      return total > 0 ? (c / total) * 100 : 0;
+    });
     const ctx = document.getElementById('accuracyChart').getContext('2d');
     const chartOverlay = document.getElementById('chartOverlay');
 
@@ -224,46 +217,42 @@
         animation: {
           onComplete: () => {
             chartOverlay.innerHTML = '';
-            chart.data.datasets[0].data.forEach((value, index) => {
-              const meta = chart.getDatasetMeta(0).data[index];
+            corrects.forEach((v, i) => {
+              const meta = chart.getDatasetMeta(0).data[i];
               const x = meta.x;
               const y = chart.scales.y.top - 5;
-
               const div = document.createElement('div');
               div.className = 'icon-label';
               div.style.left = `${x}px`;
               div.style.top = `${y}px`;
-              div.textContent = `⭐ x ${starCounts[index]}`;
+              div.textContent = `⭐ x ${v}`;
               chartOverlay.appendChild(div);
             });
           }
         },
         scales: {
-          y: {
-            beginAtZero: true,
-            max: 100
-          }
+          y: { beginAtZero: true, max: 100 }
         },
         plugins: {
-          legend: { display: false },
-          tooltip: {
-            callbacks: {
-              label: (context) => {
-                const topics = [
-                  '각 그리기',
-                  '직각삼각형에서 직각 찾기',
-                  '직각삼각형 그리기',
-                  '직각사각형에서 직각 찾기',
-                  '직각사각형 그리기'
-                ];
-                return `${context.parsed.y}% - ${topics[context.dataIndex]}`;
-              }
-            }
-          }
+          legend: { display: false }
         }
       }
     });
+
+    // PDF 자동 저장
+    window.onload = () => {
+      setTimeout(() => {
+        const element = document.getElementById('report');
+        html2pdf().set({
+          margin: 0.5,
+          filename: '동굴미션_리포트.pdf',
+          html2canvas: { scale: 2 },
+          jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+        }).from(element).save();
+      }, 300);
+    };
   </script>
+
 
 </body>
 
