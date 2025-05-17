@@ -184,14 +184,28 @@
     <div><strong>날짜:</strong> ${new Date().toLocaleDateString()}</div>
   `;
 
+    function generateFeedback(accuracy, wrongCount) {
+      if (accuracy >= 95) {
+        return "완벽해요! 직각과 각도 개념을 아주 잘 이해했어요! 👏";
+      } else if (accuracy >= 80) {
+        return "직각과 각도 개념을 잘 익혔어요! 정교함이 조금 더 좋아질 수 있어요!";
+      } else if (accuracy >= 60) {
+        return "기본 개념은 잘 이해했어요. 복습을 조금 더 해볼까요? 💡";
+      } else {
+        return "조금 더 연습이 필요해요! 각도와 직각을 다시 공부해봐요! 🔍";
+      }
+    }
+
     // 요약 박스
+    const feedback = generateFeedback(accuracy, wrongs.reduce((a, b) => a + b, 0));
+
     document.getElementById('summaryBox').innerHTML = `
-    <p>📦 <strong>총 미션 수:</strong> ${corrects.length}개 보물상자</p>
-    <p>📝 <strong>총 문제 수:</strong> ${totalQuestions}문제</p>
-    <p>✅ <strong>정답 수:</strong> ${totalCorrect}개</p>
-    <p>📊 <strong>평균 정확도:</strong> ${accuracy.toFixed(1)}%</p>
-    <p>💬 <strong>한줄 피드백:</strong> 직각과 각도 개념을 잘 익혔어요! 정교함이 조금 더 좋아질 수 있어요!</p>
-  `;
+  <p>📦 <strong>총 미션 수:</strong> ${corrects.length}개 보물상자</p>
+  <p>📝 <strong>총 문제 수:</strong> ${totalQuestions}문제</p>
+  <p>✅ <strong>정답 수:</strong> ${totalCorrect}개</p>
+  <p>📊 <strong>평균 정확도:</strong> ${accuracy.toFixed(1)}%</p>
+  <p>💬 <strong>한줄 피드백:</strong> ${feedback}</p>
+`;
 
     // 차트 그리기
     const labels = corrects.map((_, i) => `${i + 1}번 보물상자`);
