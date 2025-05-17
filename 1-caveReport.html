@@ -153,11 +153,10 @@
 
       try {
         const binary = atob(raw);
-        const bytes = new Uint8Array([...binary].map(ch => ch.charCodeAt(0)));
-        const json = new TextDecoder().decode(bytes);
-        return JSON.parse(json);
+        const decoded = decodeURIComponent(binary);
+        return JSON.parse(decoded);
       } catch (e) {
-        console.error("데이터 디코딩 실패:", e);
+        console.error("디코딩 오류:", e);
         return null;
       }
     }
