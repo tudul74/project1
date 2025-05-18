@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>각도 마스터 인증서</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <style>
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      background: #f0f4f8;
+      font-family: 'Pretendard', 'Segoe UI', sans-serif;
+    }
+
+    #certificate {
+      width: 210mm;
+      height: 297mm;
+      padding: 18mm;
+      box-sizing: border-box;
+      background: white;
+      position: relative;
+      overflow: hidden;
+
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+
+      max-width: 180mm;
+      max-height: 260mm;
+      margin: auto;
+      margin-top: 50px;
+      background: white url('https://www.transparenttextures.com/patterns/white-wall-3.png');
+      background-size: cover;
+      background-repeat: repeat;
+      border: 6px solid #d4af37;
+    }
+
+    .title {
+      font-size: 40px;
+      font-weight: bold;
+      color: #d4af37;
+      margin-top: 0px;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+
+    .subtitle {
+      font-size: 22px;
+      color: #666;
+      margin-bottom: 50px;
+      text-align: center;
+    }
+
+    .name {
+      font-size: 38px;
+      font-weight: bold;
+      margin: 00px 0;
+      color: #222;
+      text-align: center;
+    }
+
+    .content {
+      font-size: 32px;
+      line-height: 1.8;
+      color: #333;
+      text-align: center;
+      white-space: pre-line;
+      max-width: 100%;
+    }
+
+    .date {
+      margin-top: 60px;
+      font-size: 26px;
+      color: #555;
+    }
+
+    .footer {
+      margin-top: 30px;
+      font-size: 32px;
+      color: #444;
+    }
+
+    #downloadBtn {
+      display: block;
+      margin: 30px auto;
+      padding: 14px 28px;
+      font-size: 18px;
+      background-color: #4a90e2;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+    }
+
+    #downloadBtn:hover {
+      background-color: #357ABD;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="certificate">
+    <div class="title">🎓 각도 마스터 인증서</div>
+    <div class="subtitle">"숲속 마을 명예의 전당"에 등록됨을 기념하며</div>
+
+    <div class="name">[이름을 여기에]</div>
+
+    <div class="content">
+      위 사람은 ‘각도섬 대탈출’의 모든 미션을 통과하고, 각도에 대한 깊은 이해와 실력을 바탕으로 "각도 마스터"의 칭호를 획득했기에 이 인증서를 수여합니다.<br>
+      이로써 그의 이름은 "숲속 마을 명예의 전당"에 영원히 기록됩니다.
+    </div>
+
+    <div class="date">2025년 5월 18일</div>
+    <div class="footer">숲속 마을 지도자 일동</div>
+  </div>
+
+  <button id="downloadBtn">📄 인증서 다운로드</button>
+
+  <script>
+    window.addEventListener("DOMContentLoaded", () => {
+      const params = new URLSearchParams(window.location.search);
+      const name = params.get("name");
+      if (name) {
+        document.querySelector(".name").textContent = name;
+        document.getElementById("nameInput").value = name;
+      }
+    });
+
+    document.getElementById("downloadBtn").addEventListener("click", () => {
+      const element = document.getElementById("certificate");
+      html2pdf().set({
+        margin: 0,
+        filename: '각도마스터_인증서.pdf',
+        image: { type: 'jpeg', quality: 1 },
+        html2canvas: { scale: 3 },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        pagebreak: { mode: ['avoid-all'] }
+      }).from(element).save();
+    });
+  </script>
+
+</body>
+
+</html>
