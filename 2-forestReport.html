@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>동굴미션 리포트</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://raw.githack.com/eKoopmans/html2pdf/master/dist/html2pdf.bundle.js"></script>
+  <style>
+    body {
+      padding: 10px;
+      background: #fffaf2;
+      font-family: 'Pretendard', 'Noto Sans KR', sans-serif;
+      color: #333;
+    }
+
+    .report-container {
+      max-width: 700px;
+      padding: 0px 16px;
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+      margin: auto;
+    }
+
+    .report-header {
+      text-align: center;
+      margin-bottom: 15px;
+    }
+
+    .report-header h1 {
+      font-size: 28px;
+      color: #2c7c8c;
+      margin-bottom: 15px;
+    }
+
+    .report-meta {
+      display: flex;
+      justify-content: center;
+      gap: 32px;
+      flex-wrap: wrap;
+      font-size: 18px;
+      color: #444;
+    }
+
+    .summary-box {
+      background: #f0f9f9;
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 15px;
+    }
+
+    .summary-box p {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+    }
+
+    .section-title {
+      font-size: 20px;
+      font-weight: bold;
+      margin-top: 30px;
+      color: #397d84;
+      border-bottom: 2px solid #c4e4e4;
+      padding-bottom: 5px;
+    }
+
+    .footer {
+      text-align: center;
+      margin-top: 40px;
+      font-style: italic;
+      color: #666;
+    }
+
+    .stars {
+      color: #f7c94c;
+      font-weight: bold;
+      margin-top: 2px;
+    }
+
+    .chart-container {
+      position: relative;
+    }
+
+    .chart-overlay {
+      position: absolute;
+      pointer-events: none;
+    }
+
+    .icon-label {
+      position: absolute;
+      font-size: 14px;
+      text-align: center;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      white-space: nowrap;
+    }
+
+    .hills-topic-list,
+    .monkey-feedback-text {
+      list-style: none;
+      padding-left: 0;
+      margin: 0;
+    }
+
+    .monkey-feedback-area-bg {
+      position: relative;
+      margin-top: 20px;
+      min-height: 180px;
+    }
+
+    .monkey-feedback-bg {
+      width: 700px;
+      height: auto;
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 1;
+    }
+
+    .monkey-feedback-text {
+      margin-left: 260px;
+      z-index: 2;
+      position: relative;
+      font-size: 15px;
+      line-height: 1.7;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="loading">📊 데이터를 불러오는 중입니다...</div>
+  <div id="report" class="report-container" style="display: none;">
+    <div class="report-header">
+      <h1>제2장 숲속마을 학습 보고서</h1>
+      <div class="report-meta" id="metaArea"></div>
+    </div>
+    <div class="summary-box" id="summaryBox"></div>
+    <div class="section-title">언덕별 각도몽 피드백</div>
+    <div class="monkey-feedback-area-bg">
+      <div class="monkey-container">
+        <img src="https://raw.githubusercontent.com/tudul74/project1/main/images/feedbackBG.png"
+          class="monkey-feedback-bg" alt="각도몽 배경">
+        <ul id="hillFeedbackList" class="hills-topic-list monkey-feedback-text"></ul>
+      </div>
+    </div>
+    <div class="section-title">보물상자별 정확도 + 별 개수</div>
+    <div class="chart-container">
+      <canvas id="accuracyChart" width="700" height="300"></canvas>
+      <div id="chartOverlay" class="chart-overlay"></div>
+    </div>
+    <div class="section-title">언덕별 학습 주제</div>
+    <ul class="hills-topic-list">
+      <li><strong>각빛 언덕:</strong> 각의 크기 비교하기</li>
+      <li><strong>각정 언덕:</strong> 각도기로 각의 크기 재기</li>
+      <li><strong>형태 언덕:</strong> 예각, 둔각</li>
+      <li><strong>감각 언덕:</strong> 각도 어림하기</li>
+      <li><strong>조화 언덕:</strong> 각도의 합과 차</li>
+      <li><strong>완성 언덕:</strong> 삼각형 세 각의 크기의 합</li>
+      <li><strong>네잎 언덕:</strong> 사각형 네 각의 크기의 합</li>
+    </ul>
+    <div class="footer">
+      이 리포트는 여러분의 학습 결과를 요약한 것입니다. 앞으로도 열심히 공부하세요! 😊
+    </div>
+  </div>
+  <!-- 저장 버튼 -->
+  <div id="saveBtnWrapper" style="display:none; text-align:center; margin-top: 20px;">
+    <button id="savePDFBtn"
+      style="padding: 10px 20px; font-size: 16px; background-color: #2c7c8c; color: white; border: none; border-radius: 8px; cursor: pointer;">
+      📄 PDF 저장하기
+    </button>
+  </div>
+  <script>
+    const googleSheet = "https://script.google.com/macros/s/AKfycbzVXOb6MxMAVqOnxVg1-MRSHHygnb1taXbMciOxTI0GCoL65RRM4Fv2uwEcVneXHZENjw/exec";
+    const playerID = new URLSearchParams(location.search).get("playerID") || "2eK1Xn";
+
+    let userName = "";
+
+    fetch(`${googleSheet}?playerID=${playerID}&type=report`)
+      .then(res => res.json())
+      .then(data => {
+        const name = data.name;
+        userName = name;
+        const corrects = data.corrects;
+        const wrongs = data.wrongs;
+        const stars = corrects.reduce((sum, c) => sum + c, 0);
+        const total = corrects.map((c, i) => c + wrongs[i]);
+        const totalCorrect = corrects.reduce((sum, v) => sum + v, 0);
+        const totalQuestions = total.reduce((a, b) => a + b, 0);
+        const accuracy = totalQuestions ? (totalCorrect / totalQuestions) * 100 : 0;
+
+        document.getElementById('metaArea').innerHTML = `
+          <div><strong>이름:</strong> ${name}</div>
+          <div><strong>총 별 개수:</strong> <span class="stars">⭐ x ${stars}</span></div>
+          <div><strong>날짜:</strong> ${new Date().toLocaleDateString()}</div>`;
+
+        const feedback = accuracy >= 95 ? "완벽해요! 당신은 이제 각도 마스터입니다. 마법사 루미나에게 가세요. 👏" :
+          accuracy >= 80 ? "각도 마스터가 되기 충분해요! 정교함이 조금 더 좋아질 수 있어요!" :
+            accuracy >= 60 ? "기본 개념은 잘 이해했어요. 복습을 조금 더 해볼까요? 💡" :
+              "조금 더 연습이 필요해요! 부족한 언덕에 가서 다시 공부해봐요! 🔍";
+
+        const hillInfos = [
+          { name: "각빛 언덕", type: "lower-is-better" },
+          { name: "각정 언덕", type: "lower-is-better" },
+          { name: "형태 언덕", type: "higher-is-better" },
+          { name: "감각 언덕", type: "higher-is-better" },
+          { name: "조화 언덕", type: "higher-is-better" },
+          { name: "완성 언덕", type: "higher-is-better" },
+          { name: "네잎 언덕", type: "higher-is-better" }
+        ];
+
+        function getHillFeedback(accuracy, type) {
+          if (type === "lower-is-better") {
+            return accuracy >= 95 ? "빠르고 정확하게 해결했어요! 💨" :
+              accuracy >= 80 ? "좋아요! 시간 단축을 조금 더 해보세요!" :
+                "시간이 오래 걸렸어요. 더 연습해봐요! ⏳";
+          } else {
+            return accuracy >= 90 ? "정확도가 아주 높아요! 훌륭해요! 🎯" :
+              accuracy >= 70 ? "기본은 잘 했어요! 조금 더 연습해봐요!" :
+                "조금 더 연습하면 더 나아질 수 있어요! 🔄";
+          }
+        }
+
+        let completedCount = 0;
+        let feedbackHTML = "";
+
+        hillInfos.forEach((hill, i) => {
+          const total = (corrects[i] || 0) + (wrongs[i] || 0);
+          if (total > 0) {
+            completedCount++;
+            const acc = (corrects[i] / total) * 100;
+            const feedback = getHillFeedback(acc, hill.type);
+            feedbackHTML += `<li>⛰️ <strong>${hill.name}</strong>: ${feedback} (정확도 ${acc.toFixed(1)}%)</li>`;
+          } else {
+            feedbackHTML += `<li>⛰️ <strong>${hill.name}</strong>:<em style="color:green"> 아직 도전하지 않았어요! 포기하지 마세요.</em></li>`;
+          }
+        });
+
+        let goNext = "";
+        if (completedCount === 7) goNext = `${completedCount}개 언덕을 모두 해결했습니다. 마법사 루미나에게 가세요.`;
+        else goNext = `${completedCount}개 언덕을 해결했습니다. 해결하지 못한 언덕에 가서 도전해봐요!`;
+
+        document.getElementById('summaryBox').innerHTML = `
+          <p>📦 <strong>완료 미션:</strong> ${goNext}</p>
+          <p>📝 <strong>문제 해결:</strong> ${totalQuestions}문제</p>
+          <p>✅ <strong>정답 제출:</strong> ${totalCorrect}개</p>
+          <p>📊 <strong>평균 정확도:</strong> ${accuracy.toFixed(1)}%</p>
+          <p>💬 <strong>한줄 피드백:</strong> ${feedback}</p>`;
+
+        const percent = Math.floor((completedCount / hillInfos.length) * 100);
+        feedbackHTML = `<li><strong>📊 언덕 도전률:</strong> ${percent}%</li>` + feedbackHTML;
+        document.getElementById("hillFeedbackList").innerHTML = feedbackHTML;
+
+        const ctx = document.getElementById('accuracyChart').getContext('2d');
+        const chartOverlay = document.getElementById('chartOverlay');
+        const accuracyData = corrects.map((c, i) => {
+          const total = c + (wrongs[i] || 0);
+          return total > 0 ? (c / total) * 100 : 0;
+        });
+
+        const chart = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: hillInfos.map(h => h.name),
+            datasets: [{
+              label: '정확도 (%)',
+              data: accuracyData,
+              backgroundColor: '#2c7c8c'
+            }]
+          },
+          options: {
+            responsive: false,
+            animation: {
+              onComplete: () => {
+                chartOverlay.innerHTML = '';
+                corrects.forEach((v, i) => {
+                  const meta = chart.getDatasetMeta(0).data[i];
+                  const x = meta.x;
+                  const y = chart.scales.y.top - 5;
+                  const div = document.createElement('div');
+                  div.className = 'icon-label';
+                  div.style.left = `${x}px`;
+                  div.style.top = `${y}px`;
+                  div.textContent = `⭐ x ${v}`;
+                  chartOverlay.appendChild(div);
+                });
+
+                document.getElementById("saveBtnWrapper").style.display = "block";
+              }
+            },
+            scales: { y: { beginAtZero: true, max: 100 } },
+            plugins: { legend: { display: false } }
+          }
+        });
+
+        document.getElementById("loading").style.display = "none";
+        document.getElementById("report").style.display = "block";
+      })
+      .catch(err => {
+        console.error(err);
+        document.getElementById("report").innerHTML = `<p>❗ 데이터를 불러오는 중 오류가 발생했습니다.</p>`;
+      });
+
+    document.getElementById("savePDFBtn").addEventListener("click", () => {
+      const element = document.getElementById('report');
+      html2pdf().set({
+        margin: [0.2, 0.2, 0.5, 0.2],
+        filename: `동굴미션_리포트(${userName}).pdf`,
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+      }).from(element).save();
+    });
+
+  </script>
+</body>
+
+</html>
