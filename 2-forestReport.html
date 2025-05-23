@@ -14,12 +14,16 @@
       color: #333;
     }
 
+    #report {
+      min-height: 1122px;
+    }
+
     .report-container {
       max-width: 700px;
-      padding: 0px 16px;
+      padding: 40px 32px;
+      /* 여백 확보 */
       background: white;
       border-radius: 15px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
       margin: auto;
     }
 
@@ -302,14 +306,16 @@
       });
 
     document.getElementById("savePDFBtn").addEventListener("click", () => {
+      window.scrollTo(0, 0);
       const element = document.getElementById('report');
       html2pdf().set({
         margin: [0.2, 0.2, 0.5, 0.2],
-        filename: `동굴미션_리포트(${userName}).pdf`,
-        html2canvas: { scale: 2, useCORS: true },
+        filename: `숲속마을_리포트(${userName}).pdf`,
+        html2canvas: { scale: 2, useCORS: true, scrollY: 0 },
         jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
       }).from(element).save();
     });
+
 
   </script>
 </body>
