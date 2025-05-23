@@ -144,11 +144,12 @@
       "이제 숲속 마을로 갈 준비가 되었습니다."
     </div>
   </div>
-<div style="text-align: center; margin: 20px;">
-  <button onclick="savePdf()" style="padding: 10px 20px; font-size: 16px; background-color: #2c7c8c; color: white; border: none; border-radius: 8px; cursor: pointer;">
-    📄 PDF 파일 저장
-  </button>
-</div>
+  <div style="text-align: center; margin: 20px;">
+    <button onclick="savePdf()"
+      style="padding: 10px 20px; font-size: 16px; background-color: #2c7c8c; color: white; border: none; border-radius: 8px; cursor: pointer;">
+      📄 PDF 파일 저장
+    </button>
+  </div>
 
   <script>
     function decodeData() {
@@ -255,15 +256,28 @@
       }
     });
 
-  function savePdf() {
-    const element = document.getElementById('report');
-    html2pdf().set({
-      margin: 0.5,
-      filename: `동굴미션_리포트(${name}).pdf`,
-      html2canvas: { scale: 2 },
-      jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
-    }).from(element).save();
-  }
+    function savePdf() {
+      const chartCanvas = document.getElementById('accuracyChart');
+      const chartArea = chartCanvas.parentElement;
+
+      // 차트를 이미지로 대체
+      const chartImage = chartCanvas.toDataURL("image/png");
+      const img = document.createElement("img");
+      img.src = chartImage;
+      img.style.width = "100%";
+
+      chartArea.innerHTML = ''; // 기존 캔버스 + 오버레이 제거
+      chartArea.appendChild(img); // 이미지 삽입
+
+      const element = document.getElementById('report');
+      html2pdf().set({
+        margin: 0.5,
+        filename: `동굴미션_리포트(${name}).pdf`,
+        html2canvas: { scale: 2, useCORS: true },  // ✔ CORS 추가
+        jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+      }).from(element).save();
+    }
+
   </script>
 
 
