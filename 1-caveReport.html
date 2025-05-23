@@ -257,26 +257,41 @@
     });
 
     function savePdf() {
+      // 1. Edge에서 스크롤 위치 맨 위로
+      window.scrollTo(0, 0);
+
       const chartCanvas = document.getElementById('accuracyChart');
       const chartArea = chartCanvas.parentElement;
 
-      // 차트를 이미지로 대체
+      // 2. 캔버스를 이미지로 대체
       const chartImage = chartCanvas.toDataURL("image/png");
       const img = document.createElement("img");
       img.src = chartImage;
       img.style.width = "100%";
+      chartArea.innerHTML = '';
+      chartArea.appendChild(img);
 
-      chartArea.innerHTML = ''; // 기존 캔버스 + 오버레이 제거
-      chartArea.appendChild(img); // 이미지 삽입
-
+      // 3. PDF 저장
       const element = document.getElementById('report');
       html2pdf().set({
         margin: 0.5,
         filename: `동굴미션_리포트(${name}).pdf`,
-        html2canvas: { scale: 2, useCORS: true },  // ✔ CORS 추가
-        jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+        html2canvas: {
+          scale: 2,
+          useCORS: true,
+          scrollY: 0 // ✔ Edge 잘림 방지 핵심
+        },
+        jsPDF: {
+          unit: 'in',
+          format: 'a4',
+          orientation: 'portrait'
+        },
+        pagebreak: {
+          mode: ['css', 'legacy']
+        }
       }).from(element).save();
     }
+
 
   </script>
 
