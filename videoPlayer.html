@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8">
+  <title>동영상 플레이</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css"
+    integrity="sha512-KfkfwYDsLkIlwQp6LFnl8zNdLGxu9YAA1QvwINks4PhcElQSvqcyVLLD9aMhXd13uQjoXtEKNosOWaZqXgel0g=="
+    crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <style>
+    html {
+      /* 드래그 방지 */
+      -ms-user-select: none;
+      -moz-user-select: -moz-none;
+      -webkit-user-select: none;
+      -khtml-user-select: none;
+      user-select: none;
+    }
+
+    * {
+      padding: 0;
+      margin: 0;
+      box-sizing: border-box;
+    }
+
+    ::-webkit-scrollbar {
+      display: none;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Pretendard', sans-serif;
+      background: linear-gradient(to bottom, #fff8e1, #f1faff);
+      width: 800px;
+      min-height: 500px;
+      overflow: auto;
+      /* ✅ 스크롤 허용 */
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      border-radius: 12px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .top-bar {
+      width: 100%;
+      padding: 16px 20px 0px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .video-title {
+      font-size: 20px;
+      font-weight: bold;
+      color: #333;
+    }
+
+    .close-button {
+      background: none;
+      border: none;
+      font-size: 26px;
+      color: #666;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .close-button:hover {
+      color: #ff6b6b;
+      transform: scale(1.1);
+    }
+
+    #intro {
+      text-align: center;
+      margin-top: 5px;
+      /* 기존 50px → 12px으로 줄임 */
+    }
+
+    video {
+      max-width: 100%;
+      height: auto;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="top-bar">
+    <div class="video-title">🎬 제1장 각도섬의 첫 만남: 조력자 각도몽을 찾아라.</div>
+    <button id="closeBtn" class="close-button" aria-label="닫기" onclick="closeWidget()">
+      <i class="fas fa-times"></i>
+    </button>
+  </div>
+
+  <div id="intro">
+    <video id="content" controls width="750">
+      <source src="" type="video/mp4">
+      브라우저가 video 태그를 지원하지 않습니다.
+    </video>
+  </div>
+  <script>
+    // ✅ 외부에서 메시지 수신하여 비디오 소스 변경
+    window.addEventListener("message", (event) => {
+      const data = event.data;
+
+      // 객체 형태인지 확인
+      let filename = "";
+      let title = "";
+
+      if (typeof data === "object" && data !== null) {
+        filename = data.file;
+        title = data.title || "🎬 동영상";
+      } else if (typeof data === "string") {
+        filename = data;
+        title = filename;
+      }
+
+      const baseURL = "https://raw.githubusercontent.com/tudul74/project1/main/movie/";
+
+      // 비디오 소스 변경
+      const video = document.querySelector("video");
+      const source = video.querySelector("source");
+      source.src = baseURL + filename;
+      video.load();
+      video.play().catch(() => { });
+
+      // 제목 갱신
+      const titleElement = document.querySelector(".video-title");
+      titleElement.textContent = title;
+    });
+
+    function closeWidget() {
+      // App으로 메시지를 보냄.
+      window.parent.postMessage(
+        {
+          type: "close",
+        },
+        "*"
+      );
+    }
+  </script>
+</body>
+
+</html>
